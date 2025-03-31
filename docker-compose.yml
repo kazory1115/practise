@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:latest
+    container_name: practise_nginx
+    restart: always
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./www:/var/www/html
+    ports:
+      - '801:80' # 改為 80，讓 nginx 處理主頁面
+    depends_on:
+      - php
+
+  php:
+    build: . # 使用當前目錄的 Dockerfile 來構建映像
+    container_name: practise_php
+    restart: always
+    volumes:
+      - ./www:/var/www/html
+    depends_on:
+      - mariadb
+
+  mariadb:
+    image: mariadb:10.11.7
+    container_name: practise_mariadb
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234 # 請更改此密碼
+      MYSQL_DATABASE: localhostDB # 確保這裡有設定
+    volumes:
+      - practise_data:/var/lib/mysql
+    ports:
+      - '3307:3306'
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: practise_phpmyadmin
+    restart: always
+    environment:
+      PMA_HOST: practise_mariadb
+      PMA_USER: root
+      PMA_PASSWORD: 1234 # 需與上方設定的 root 密碼一致
+    ports:
+      - '802:80'
+    depends_on:
+      - mariadb
+
+volumes:
+  practise_data:
